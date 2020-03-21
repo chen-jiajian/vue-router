@@ -1,5 +1,5 @@
 /*!
-  * vue-router v3.1.6
+  * vue-router v3.1.3
   * (c) 2020 Evan You
   * @license MIT
   */
@@ -61,12 +61,14 @@ var View = {
     let depth = 0;
     let inactive = false;
     while (parent && parent._routerRoot !== parent) {
-      const vnodeData = parent.$vnode ? parent.$vnode.data : {};
-      if (vnodeData.routerView) {
-        depth++;
-      }
-      if (vnodeData.keepAlive && parent._directInactive && parent._inactive) {
-        inactive = true;
+      const vnodeData = parent.$vnode && parent.$vnode.data;
+      if (vnodeData) {
+        if (vnodeData.routerView) {
+          depth++;
+        }
+        if (vnodeData.keepAlive && parent._inactive) {
+          inactive = true;
+        }
       }
       parent = parent.$parent;
     }
@@ -74,32 +76,17 @@ var View = {
 
     // render previous view if the tree is inactive and kept-alive
     if (inactive) {
-      const cachedData = cache[name];
-      const cachedComponent = cachedData && cachedData.component;
-      if (cachedComponent) {
-        // #2301
-        // pass props
-        if (cachedData.configProps) {
-          fillPropsinData(cachedComponent, data, cachedData.route, cachedData.configProps);
-        }
-        return h(cachedComponent, data, children)
-      } else {
-        // render previous empty view
-        return h()
-      }
+      return h(cache[name], data, children)
     }
 
     const matched = route.matched[depth];
-    const component = matched && matched.components[name];
-
-    // render empty node if no matched route or no config component
-    if (!matched || !component) {
+    // render empty node if no matched route
+    if (!matched) {
       cache[name] = null;
       return h()
     }
 
-    // cache component
-    cache[name] = { component };
+    const component = cache[name] = matched.components[name];
 
     // attach instance registration hook
     // this will be called in the instance's injected lifecycle hooks
@@ -131,36 +118,24 @@ var View = {
       }
     };
 
-    const configProps = matched.props && matched.props[name];
-    // save route and configProps in cachce
-    if (configProps) {
-      extend(cache[name], {
-        route,
-        configProps
-      });
-      fillPropsinData(component, data, route, configProps);
+    // resolve props
+    let propsToPass = data.props = resolveProps(route, matched.props && matched.props[name]);
+    if (propsToPass) {
+      // clone to prevent mutation
+      propsToPass = data.props = extend({}, propsToPass);
+      // pass non-declared props as attrs
+      const attrs = data.attrs = data.attrs || {};
+      for (const key in propsToPass) {
+        if (!component.props || !(key in component.props)) {
+          attrs[key] = propsToPass[key];
+          delete propsToPass[key];
+        }
+      }
     }
 
     return h(component, data, children)
   }
 };
-
-function fillPropsinData (component, data, route, configProps) {
-  // resolve props
-  let propsToPass = data.props = resolveProps(route, configProps);
-  if (propsToPass) {
-    // clone to prevent mutation
-    propsToPass = data.props = extend({}, propsToPass);
-    // pass non-declared props as attrs
-    const attrs = data.attrs = data.attrs || {};
-    for (const key in propsToPass) {
-      if (!component.props || !(key in component.props)) {
-        attrs[key] = propsToPass[key];
-        delete propsToPass[key];
-      }
-    }
-  }
-}
 
 function resolveProps (route, config) {
   switch (typeof config) {
@@ -478,14 +453,14 @@ function cleanPath (path) {
   return path.replace(/\/\//g, '/')
 }
 
-var isarray = Array.isArray || function (arr) {
+var _isarray_0_0_1_isarray = Array.isArray || function (arr) {
   return Object.prototype.toString.call(arr) == '[object Array]';
 };
 
 /**
  * Expose `pathToRegexp`.
  */
-var pathToRegexp_1 = pathToRegexp;
+var _pathToRegexp_1_8_0_pathToRegexp = pathToRegexp;
 var parse_1 = parse;
 var compile_1 = compile;
 var tokensToFunction_1 = tokensToFunction;
@@ -590,7 +565,7 @@ function parse (str, options) {
  * @return {!function(Object=, Object=)}
  */
 function compile (str, options) {
-  return tokensToFunction(parse(str, options))
+  return tokensToFunction(parse(str, options), options)
 }
 
 /**
@@ -620,14 +595,14 @@ function encodeAsterisk (str) {
 /**
  * Expose a method for transforming tokens into the path function.
  */
-function tokensToFunction (tokens) {
+function tokensToFunction (tokens, options) {
   // Compile all the tokens into regexps.
   var matches = new Array(tokens.length);
 
   // Compile all the patterns before compilation.
   for (var i = 0; i < tokens.length; i++) {
     if (typeof tokens[i] === 'object') {
-      matches[i] = new RegExp('^(?:' + tokens[i].pattern + ')$');
+      matches[i] = new RegExp('^(?:' + tokens[i].pattern + ')$', flags(options));
     }
   }
 
@@ -662,7 +637,7 @@ function tokensToFunction (tokens) {
         }
       }
 
-      if (isarray(value)) {
+      if (_isarray_0_0_1_isarray(value)) {
         if (!token.repeat) {
           throw new TypeError('Expected "' + token.name + '" to not repeat, but received `' + JSON.stringify(value) + '`')
         }
@@ -740,7 +715,7 @@ function attachKeys (re, keys) {
  * @return {string}
  */
 function flags (options) {
-  return options.sensitive ? '' : 'i'
+  return options && options.sensitive ? '' : 'i'
 }
 
 /**
@@ -813,7 +788,7 @@ function stringToRegexp (path, keys, options) {
  * @return {!RegExp}
  */
 function tokensToRegExp (tokens, keys, options) {
-  if (!isarray(keys)) {
+  if (!_isarray_0_0_1_isarray(keys)) {
     options = /** @type {!Object} */ (keys || options);
     keys = [];
   }
@@ -889,7 +864,7 @@ function tokensToRegExp (tokens, keys, options) {
  * @return {!RegExp}
  */
 function pathToRegexp (path, keys, options) {
-  if (!isarray(keys)) {
+  if (!_isarray_0_0_1_isarray(keys)) {
     options = /** @type {!Object} */ (keys || options);
     keys = [];
   }
@@ -900,16 +875,16 @@ function pathToRegexp (path, keys, options) {
     return regexpToRegexp(path, /** @type {!Array} */ (keys))
   }
 
-  if (isarray(path)) {
+  if (_isarray_0_0_1_isarray(path)) {
     return arrayToRegexp(/** @type {!Array} */ (path), /** @type {!Array} */ (keys), options)
   }
 
   return stringToRegexp(/** @type {string} */ (path), /** @type {!Array} */ (keys), options)
 }
-pathToRegexp_1.parse = parse_1;
-pathToRegexp_1.compile = compile_1;
-pathToRegexp_1.tokensToFunction = tokensToFunction_1;
-pathToRegexp_1.tokensToRegExp = tokensToRegExp_1;
+_pathToRegexp_1_8_0_pathToRegexp.parse = parse_1;
+_pathToRegexp_1_8_0_pathToRegexp.compile = compile_1;
+_pathToRegexp_1_8_0_pathToRegexp.tokensToFunction = tokensToFunction_1;
+_pathToRegexp_1_8_0_pathToRegexp.tokensToRegExp = tokensToRegExp_1;
 
 /*  */
 
@@ -925,17 +900,15 @@ function fillParams (
   try {
     const filler =
       regexpCompileCache[path] ||
-      (regexpCompileCache[path] = pathToRegexp_1.compile(path));
+      (regexpCompileCache[path] = _pathToRegexp_1_8_0_pathToRegexp.compile(path));
 
     // Fix #2505 resolving asterisk routes { name: 'not-found', params: { pathMatch: '/not-found' }}
-    // and fix #3106 so that you can work with location descriptor object having params.pathMatch equal to empty string
-    if (typeof params.pathMatch === 'string') params[0] = params.pathMatch;
+    if (params.pathMatch) params[0] = params.pathMatch;
 
     return filler(params, { pretty: true })
   } catch (e) {
     {
-      // Fix #3072 no warn if `pathMatch` is string
-      warn(typeof params.pathMatch === 'string', `missing param for ${routeMsg}: ${e.message}`);
+      warn(false, `missing param for ${routeMsg}: ${e.message}`);
     }
     return ''
   } finally {
@@ -1111,8 +1084,8 @@ var Link = {
           warn(
             false,
             `RouterLink with to="${
-              this.to
-            }" is trying to use a scoped slot but it didn't provide exactly one child. Wrapping the content with a span element.`
+              this.props.to
+            }" is trying to use a scoped slot but it didn't provide exactly one child.`
           );
         }
         return scopedSlot.length === 0 ? h() : h('span', {}, scopedSlot)
@@ -1196,45 +1169,58 @@ function findAnchor (children) {
 let _Vue;
 
 function install (Vue) {
+  // 防止重复安装
   if (install.installed && _Vue === Vue) return
   install.installed = true;
 
   _Vue = Vue;
 
-  const isDef = v => v !== undefined;
+  const isDef = v => v !== undefined; // 是否定义
 
+  // 注册实例
   const registerInstance = (vm, callVal) => {
     let i = vm.$options._parentVnode;
     if (isDef(i) && isDef(i = i.data) && isDef(i = i.registerRouteInstance)) {
       i(vm, callVal);
     }
   };
-
+  // 混入生命周期
   Vue.mixin({
     beforeCreate () {
+      console.log('router-beforeCreate');
+      // 判断是否是根组件
       if (isDef(this.$options.router)) {
+        console.log('根组件', this);
         this._routerRoot = this;
-        this._router = this.$options.router;
+        this._router = this.$options.router; // 整个router对象
         this._router.init(this);
+        console.log('this._router', this._router);
+        // defineReactive() 就是用于定义响应式数据的工具函数，_route依赖history.current，current改变时，触发更新机制，组件的render方法会调用，组件的_route值也会变更
         Vue.util.defineReactive(this, '_route', this._router.history.current);
       } else {
+        // 如果不是根组件，关联根组件 this.routerRoot指向根组件
         this._routerRoot = (this.$parent && this.$parent._routerRoot) || this;
+        // console.log('子组件：', this)
+        // console.log('关联根组件：', this._routerRoot)
       }
+      // 注册实例
       registerInstance(this, this);
     },
     destroyed () {
+      // 销毁实例
       registerInstance(this);
     }
   });
-
+  // 挂载变量到原型上
   Object.defineProperty(Vue.prototype, '$router', {
     get () { return this._routerRoot._router }
   });
-
+  // 挂载变量到原型上
   Object.defineProperty(Vue.prototype, '$route', {
     get () { return this._routerRoot._route }
   });
 
+  // 注册全局组件
   Vue.component('RouterView', View);
   Vue.component('RouterLink', Link);
 
@@ -1420,7 +1406,7 @@ function compileRouteRegex (
   path,
   pathToRegexpOptions
 ) {
-  const regex = pathToRegexp_1(path, [], pathToRegexpOptions);
+  const regex = _pathToRegexp_1_8_0_pathToRegexp(path, [], pathToRegexpOptions);
   {
     const keys = Object.create(null);
     regex.keys.forEach(key => {
@@ -1669,10 +1655,7 @@ function setupScroll () {
   // location.host contains the port and location.hostname doesn't
   const protocolAndPath = window.location.protocol + '//' + window.location.host;
   const absolutePath = window.location.href.replace(protocolAndPath, '');
-  // preserve existing history state as it could be overriden by the user
-  const stateCopy = extend({}, window.history.state);
-  stateCopy.key = getStateKey();
-  window.history.replaceState(stateCopy, '', absolutePath);
+  window.history.replaceState({ key: getStateKey() }, '', absolutePath);
   window.addEventListener('popstate', e => {
     saveScrollPosition();
     if (e.state && e.state.key) {
@@ -2055,11 +2038,13 @@ class History {
     onComplete,
     onAbort
   ) {
-    const route = this.router.match(location, this.current);
-    this.confirmTransition(
+    const route = this.router.match(location, this.current); // 得到即将跳转的路由对象
+    console.log('this.current:', this.current);
+    console.log('match-route:', route);
+    this.confirmTransition( // 确认路由
       route,
       () => {
-        this.updateRoute(route);
+        this.updateRoute(route); // 更新路由
         onComplete && onComplete(route);
         this.ensureURL();
 
@@ -2433,6 +2418,7 @@ class HashHistory extends History {
       setupScroll();
     }
 
+    // 监听路由变化事件
     window.addEventListener(
       supportsPushState ? 'popstate' : 'hashchange',
       () => {
@@ -2453,11 +2439,15 @@ class HashHistory extends History {
   }
 
   push (location, onComplete, onAbort) {
+    console.log('location: ', location);
+    console.log('onComplete: ', onComplete);
+    console.log('onAbort: ', onAbort);
     const { current: fromRoute } = this;
     this.transitionTo(
-      location,
-      route => {
-        pushHash(route.fullPath);
+      location, // 传入的route对象 {path: '', query: {}}
+      route => { // route对象
+        console.log('route', route);
+        pushHash(route.fullPath); // 对浏览器hash赋值
         handleScroll(this.router, route, fromRoute, false);
         onComplete && onComplete(route);
       },
@@ -2653,12 +2643,14 @@ class VueRouter {
     this.resolveHooks = [];
     this.afterHooks = [];
     this.matcher = createMatcher(options.routes || [], this);
-
+    //  默认hash模式
     let mode = options.mode || 'hash';
+    // 如果设置的是 history 但是如果浏览器不支持的话，重置hash模式
     this.fallback = mode === 'history' && !supportsPushState && options.fallback !== false;
     if (this.fallback) {
       mode = 'hash';
     }
+    // 不在浏览器中 强制 abstract 模式
     if (!inBrowser) {
       mode = 'abstract';
     }
@@ -2699,12 +2691,12 @@ class VueRouter {
       `not installed. Make sure to call \`Vue.use(VueRouter)\` ` +
       `before creating root instance.`
     );
-
-    this.apps.push(app);
-
+    this.apps.push(app);// 添加根组件进数组
+    console.log('app:', app);
+    console.log('apps:', this.apps);
     // set up app destroyed handler
     // https://github.com/vuejs/vue-router/issues/2639
-    app.$once('hook:destroyed', () => {
+    app.$once('hook:destroyed', () => { // 销毁，从apps里干掉
       // clean out app from this.apps array once destroyed
       const index = this.apps.indexOf(app);
       if (index > -1) this.apps.splice(index, 1);
@@ -2722,7 +2714,7 @@ class VueRouter {
     this.app = app;
 
     const history = this.history;
-
+    console.log('history:', history);
     if (history instanceof HTML5History) {
       history.transitionTo(history.getCurrentLocation());
     } else if (history instanceof HashHistory) {
@@ -2735,10 +2727,11 @@ class VueRouter {
         setupHashListener
       );
     }
-
+    // 监听route的变化， 更新根组件上的_route， listen函数赋值cb给this.cb， updateRoute的时候会去调用cb
     history.listen(route => {
       this.apps.forEach((app) => {
         app._route = route;
+        console.log('this.apps.forEach:', app);
       });
     });
   }
@@ -2861,7 +2854,7 @@ function createHref (base, fullPath, mode) {
 }
 
 VueRouter.install = install;
-VueRouter.version = '3.1.6';
+VueRouter.version = '3.1.3';
 
 if (inBrowser && window.Vue) {
   window.Vue.use(VueRouter);

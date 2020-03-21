@@ -67,11 +67,13 @@ export class History {
     onComplete?: Function,
     onAbort?: Function
   ) {
-    const route = this.router.match(location, this.current)
-    this.confirmTransition(
+    const route = this.router.match(location, this.current) // 得到即将跳转的路由对象
+    console.log('this.current:', this.current)
+    console.log('match-route:', route)
+    this.confirmTransition( // 确认路由
       route,
       () => {
-        this.updateRoute(route)
+        this.updateRoute(route) // 更新路由
         onComplete && onComplete(route)
         this.ensureURL()
 

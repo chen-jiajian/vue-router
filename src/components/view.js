@@ -26,12 +26,14 @@ export default {
     let depth = 0
     let inactive = false
     while (parent && parent._routerRoot !== parent) {
-      const vnodeData = parent.$vnode ? parent.$vnode.data : {}
-      if (vnodeData.routerView) {
-        depth++
-      }
-      if (vnodeData.keepAlive && parent._directInactive && parent._inactive) {
-        inactive = true
+      const vnodeData = parent.$vnode && parent.$vnode.data
+      if (vnodeData) {
+        if (vnodeData.routerView) {
+          depth++
+        }
+        if (vnodeData.keepAlive && parent._inactive) {
+          inactive = true
+        }
       }
       parent = parent.$parent
     }
@@ -39,32 +41,17 @@ export default {
 
     // render previous view if the tree is inactive and kept-alive
     if (inactive) {
-      const cachedData = cache[name]
-      const cachedComponent = cachedData && cachedData.component
-      if (cachedComponent) {
-        // #2301
-        // pass props
-        if (cachedData.configProps) {
-          fillPropsinData(cachedComponent, data, cachedData.route, cachedData.configProps)
-        }
-        return h(cachedComponent, data, children)
-      } else {
-        // render previous empty view
-        return h()
-      }
+      return h(cache[name], data, children)
     }
 
     const matched = route.matched[depth]
-    const component = matched && matched.components[name]
-
-    // render empty node if no matched route or no config component
-    if (!matched || !component) {
+    // render empty node if no matched route
+    if (!matched) {
       cache[name] = null
       return h()
     }
 
-    // cache component
-    cache[name] = { component }
+    const component = cache[name] = matched.components[name]
 
     // attach instance registration hook
     // this will be called in the instance's injected lifecycle hooks
@@ -96,34 +83,22 @@ export default {
       }
     }
 
-    const configProps = matched.props && matched.props[name]
-    // save route and configProps in cachce
-    if (configProps) {
-      extend(cache[name], {
-        route,
-        configProps
-      })
-      fillPropsinData(component, data, route, configProps)
+    // resolve props
+    let propsToPass = data.props = resolveProps(route, matched.props && matched.props[name])
+    if (propsToPass) {
+      // clone to prevent mutation
+      propsToPass = data.props = extend({}, propsToPass)
+      // pass non-declared props as attrs
+      const attrs = data.attrs = data.attrs || {}
+      for (const key in propsToPass) {
+        if (!component.props || !(key in component.props)) {
+          attrs[key] = propsToPass[key]
+          delete propsToPass[key]
+        }
+      }
     }
 
     return h(component, data, children)
-  }
-}
-
-function fillPropsinData (component, data, route, configProps) {
-  // resolve props
-  let propsToPass = data.props = resolveProps(route, configProps)
-  if (propsToPass) {
-    // clone to prevent mutation
-    propsToPass = data.props = extend({}, propsToPass)
-    // pass non-declared props as attrs
-    const attrs = data.attrs = data.attrs || {}
-    for (const key in propsToPass) {
-      if (!component.props || !(key in component.props)) {
-        attrs[key] = propsToPass[key]
-        delete propsToPass[key]
-      }
-    }
   }
 }
 

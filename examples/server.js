@@ -21,7 +21,8 @@ const path = require('path')
 
 fs.readdirSync(__dirname).forEach(file => {
   if (fs.statSync(path.join(__dirname, file)).isDirectory()) {
-    app.use(rewrite('/' + file + '/*', '/' + file + '/index.html'))
+    // 如果存在目录，映射一个服务器路径
+    app.use(rewrite('/' + file + '/test', '/' + file + '/index.html'))
   }
 })
 

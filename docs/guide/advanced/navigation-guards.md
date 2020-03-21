@@ -6,8 +6,6 @@ Remember that **params or query changes won't trigger enter/leave navigation gua
 
 ## Global Before Guards
 
-<div class="vueschool"><a href="https://vueschool.io/lessons/how-to-configure-an-authentication-middleware-route-guard-with-vue-router?friend=vuejs" target="_blank" rel="sponsored noopener" title="Learn how to create an authentication middleware with a global route guard on Vue School">Learn how navigation guards works with a free lesson on Vue School</a></div>
-
 You can register global before guards using `router.beforeEach`:
 
 ```js
@@ -41,7 +39,7 @@ Every guard function receives three arguments:
 ```js
 // BAD
 router.beforeEach((to, from, next) => {
-  if (to.name !== 'Login' && !isAuthenticated) next({ name: 'Login' })
+  if (!isAuthenticated) next('/login')
   // if the user is not authenticated, `next` is called twice
   next()
 })
@@ -50,7 +48,7 @@ router.beforeEach((to, from, next) => {
 ```js
 // GOOD
 router.beforeEach((to, from, next) => {
-  if (to.name !== 'Login' && !isAuthenticated) next({ name: 'Login' })
+  if (!isAuthenticated) next('/login')
   else next()
 })
 ```

@@ -28,6 +28,7 @@ export class HashHistory extends History {
       setupScroll()
     }
 
+    // 监听路由变化事件
     window.addEventListener(
       supportsPushState ? 'popstate' : 'hashchange',
       () => {
@@ -48,11 +49,15 @@ export class HashHistory extends History {
   }
 
   push (location: RawLocation, onComplete?: Function, onAbort?: Function) {
+    console.log('location: ', location)
+    console.log('onComplete: ', onComplete)
+    console.log('onAbort: ', onAbort)
     const { current: fromRoute } = this
     this.transitionTo(
-      location,
-      route => {
-        pushHash(route.fullPath)
+      location, // 传入的route对象 {path: '', query: {}}
+      route => { // route对象
+        console.log('route', route)
+        pushHash(route.fullPath) // 对浏览器hash赋值
         handleScroll(this.router, route, fromRoute, false)
         onComplete && onComplete(route)
       },

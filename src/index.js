@@ -40,12 +40,14 @@ export default class VueRouter {
     this.resolveHooks = []
     this.afterHooks = []
     this.matcher = createMatcher(options.routes || [], this)
-
+    //  默认hash模式
     let mode = options.mode || 'hash'
+    // 如果设置的是 history 但是如果浏览器不支持的话，重置hash模式
     this.fallback = mode === 'history' && !supportsPushState && options.fallback !== false
     if (this.fallback) {
       mode = 'hash'
     }
+    // 不在浏览器中 强制 abstract 模式
     if (!inBrowser) {
       mode = 'abstract'
     }
@@ -86,12 +88,12 @@ export default class VueRouter {
       `not installed. Make sure to call \`Vue.use(VueRouter)\` ` +
       `before creating root instance.`
     )
-
-    this.apps.push(app)
-
+    this.apps.push(app)// 添加根组件进数组
+    console.log('app:', app)
+    console.log('apps:', this.apps)
     // set up app destroyed handler
     // https://github.com/vuejs/vue-router/issues/2639
-    app.$once('hook:destroyed', () => {
+    app.$once('hook:destroyed', () => { // 销毁，从apps里干掉
       // clean out app from this.apps array once destroyed
       const index = this.apps.indexOf(app)
       if (index > -1) this.apps.splice(index, 1)
@@ -109,7 +111,7 @@ export default class VueRouter {
     this.app = app
 
     const history = this.history
-
+    console.log('history:', history)
     if (history instanceof HTML5History) {
       history.transitionTo(history.getCurrentLocation())
     } else if (history instanceof HashHistory) {
@@ -122,10 +124,11 @@ export default class VueRouter {
         setupHashListener
       )
     }
-
+    // 监听route的变化， 更新根组件上的_route， listen函数赋值cb给this.cb， updateRoute的时候会去调用cb
     history.listen(route => {
       this.apps.forEach((app) => {
         app._route = route
+        console.log('this.apps.forEach:', app)
       })
     })
   }
