@@ -63,25 +63,26 @@ export class History {
   }
 
   transitionTo (
-    location: RawLocation,
+    location: RawLocation, // 浏览器location
     onComplete?: Function,
     onAbort?: Function
   ) {
-    const route = this.router.match(location, this.current) // 得到即将跳转的路由对象
-    console.log('this.current:', this.current)
-    console.log('match-route:', route)
+    console.log('location', location)
+    const route = this.router.match(location, this.current) // 得到即将跳转的路由对象 [name, meta, path, hash,query, params, fullPath, matcched]
+    console.log('this.current:', this.current) // 当前路由
+    console.log('match-route:', route) // 跳转的路由对象
     this.confirmTransition( // 确认路由
       route,
       () => {
         this.updateRoute(route) // 更新路由
-        onComplete && onComplete(route)
-        this.ensureURL()
+        onComplete && onComplete(route) // 回调函数
+        this.ensureURL() //
 
         // fire ready cbs once
         if (!this.ready) {
           this.ready = true
           this.readyCbs.forEach(cb => {
-            cb(route)
+            cb(route) // 准备后的回调事件
           })
         }
       },
@@ -118,6 +119,7 @@ export class History {
       }
       onAbort && onAbort(err)
     }
+    // 是否同个路由
     if (
       isSameRoute(route, current) &&
       // in the case the route map has been dynamically appended to
@@ -204,9 +206,11 @@ export class History {
 
   updateRoute (route: Route) {
     const prev = this.current
-    this.current = route
-    this.cb && this.cb(route)
+    this.current = route // 切换当前路由
+    this.cb && this.cb(route) // 这个回调是listen时设置的
+    console.log('afterHooks', this.router.afterHooks)
     this.router.afterHooks.forEach(hook => {
+      console.log('hook', hook)
       hook && hook(route, prev)
     })
   }

@@ -1,9 +1,5 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
-
-import {getCookie} from 'xys-util'
-import {isMobile} from 'xys-util'
-console.log('xys', getCookie)
 Vue.use(VueRouter)
 
 const test3 = { template: '<div>test</div>' }
@@ -23,8 +19,7 @@ const router = new VueRouter({
 new Vue({
   router,
   data: () => ({ n: 0 }),
-  template:
-    `
+  template: `
       <div id="app">
         <h1>test</h1>
         <a href="test">test</a>
