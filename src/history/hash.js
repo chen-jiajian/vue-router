@@ -82,8 +82,9 @@ export class HashHistory extends History {
     window.history.go(n)
   }
 
-  ensureURL (push?: boolean) {
-    const current = this.current.fullPath
+  ensureURL (push?: boolean) { // 改变url
+    const current = this.current.fullPath // 当前链接hash
+    console.log('当前链接:', current)
     if (getHash() !== current) {
       push ? pushHash(current) : replaceHash(current)
     }
@@ -96,14 +97,17 @@ export class HashHistory extends History {
 
 function checkFallback (base) {
   const location = getLocation(base)
+  console.log('checkFallback.location', location)
   if (!/^\/#/.test(location)) {
+    console.log('cleanPath', cleanPath(base + '/#' + location))
     window.location.replace(cleanPath(base + '/#' + location))
     return true
   }
 }
-
+// 更新url
 function ensureSlash (): boolean {
   const path = getHash()
+  console.log('ensureSlash.path', path)
   if (path.charAt(0) === '/') {
     return true
   }
@@ -143,7 +147,7 @@ function getUrl (path) {
   return `${base}#${path}`
 }
 
-function pushHash (path) {
+function pushHash (path) { // 改变url上的hash
   if (supportsPushState) {
     pushState(getUrl(path))
   } else {

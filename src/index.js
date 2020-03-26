@@ -52,7 +52,7 @@ export default class VueRouter {
       mode = 'abstract'
     }
     this.mode = mode
-
+    console.log('options', options)
     switch (mode) {
       case 'history':
         this.history = new HTML5History(this, options.base)
@@ -112,6 +112,7 @@ export default class VueRouter {
 
     const history = this.history
     console.log('history:', history)
+    // 调用transitionTo过渡方法
     if (history instanceof HTML5History) {
       history.transitionTo(history.getCurrentLocation())
     } else if (history instanceof HashHistory) {

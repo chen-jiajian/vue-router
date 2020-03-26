@@ -179,7 +179,7 @@ export class History {
         abort(e)
       }
     }
-
+    // 运行队列
     runQueue(queue, iterator, () => {
       const postEnterCbs = []
       const isValid = () => this.current === route

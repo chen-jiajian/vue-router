@@ -30,7 +30,8 @@ export function install (Vue) {
         this._router = this.$options.router // 整个router对象
         this._router.init(this) // 初始化根组件路由
         console.log('this._router', this._router)
-        // defineReactive() 就是用于定义响应式数据的工具函数，_route依赖history.current，current改变时，触发更新机制，组件的render方法会调用，组件的_route值也会变更
+        // defineReactive(obj, key, val)
+        // defineReactive() 就是用于定义响应式数据的工具函数，定义this._route为响应式变量，值为this._router.history.current， _route改变能触发render更新
         Vue.util.defineReactive(this, '_route', this._router.history.current)
       } else {
         // 如果不是根组件，关联根组件 this.routerRoot指向根组件
