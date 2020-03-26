@@ -15,18 +15,8 @@
     2.Vue.mixin 
     (1)混入一个beforeCreate() 对根组件初始化：哪个是组件，Vue的实例就是根组件，记得我们在Vue实例化的时
     候，给Vue添加了router这个属性，所以我们能轻松的找到根组件。
-    (2)init方法初始化根组件，在index.js中，对实例后的history对象，调用transitionTo()方法，后面讲transitionTo方法非常重要，push和初始化和url改变触发的事件都调用了它
-        transitionTo方法作用：更新路由，执行回调函数
-            1.匹配到路由 match
-            2.更新路由对象 updateRoute 中去执行cb回调函数，cb回调函数是在listen中设置的，
-            index.js中设置了listen的回调函数
-            history.listen(route => {
-                this.apps.forEach((app) => {
-                    app._route = route // 更新了app上面的_route 这个是当前组件的意思
-                })
-            })
-
-        调用history.listen方法，传入一个函数，这个函数会在路由更新时调用，也就是updateRoute方法中执行，等会再看updateRoute方法做了什么，传入的这个函数，更新了根组件上的_route属性(当前路由对象)，也就是a组件变化成b组件时，根组件上的_route从a的路由信息，变成了b的路由信息
+    (2)init方法初始化根组件，在index.js中，对实例后的history对象，调用transitionTo()方法，后面讲transitionTo方法非常重要，更新路由的完整过程，push和初始化和url改变触发的事件都调用了它， 
+        
     还调用了history.setupListeners
         监听路由变化事件(popstate, hashchange),然后调用transitionTo方法
     (3)而且定义了_route这个响应式变量，只要改变_route，视图就能更新
@@ -54,10 +44,62 @@
     定义了hash模式的push，replace，go等方法
 ### 3.根据push如何去匹配组件
     以hash模式为例
+    我们整理一下他的过程
     hashHistory.push() => history.transitionTo() => History.updateRoute() => app._route = route => vm.render()
 
+    我们先是用this.$router.push('/index')
+    this.$router对象其实是new VueRouter出来的对象， 在install.js中定义了这个变量
+    // 挂载变量到原型上
+    Object.defineProperty(Vue.prototype, '$router', {
+        get () { return this._routerRoot._router }
+    })
+    // 挂载变量到原型上
+    Object.defineProperty(Vue.prototype, '$route', {
+        get () { return this._routerRoot._route }
+    })
+    this._routerRoot._router // 根组件上的router对象
+    调用router实例上的push方法，router.push调用hashHistory.push方法
+    push方法去调用transitionTo传入location， 回调函数pushHash，改变浏览器url的hash值
+    this.transitionTo():
+        // 匹配得到要跳转的路由
+        const route = this.router.match(location, this.current)
+        // 更新路由
+        updateRoute(route)
+        // 更新url
+        ensureURL()
+    updateRoute里又做了什么？
+        // 赋值当前路由给current变量
+        this.current = route
+        // 执行回调函数，这个回调函数是listen时设置的
+        this.cb && this.cb(route)
+        // 回调函数执行如下操作， 也就是更新了根组件上的_route对象（当前路由对象）
+        app._route = route
+        根组件上的_route是定义的响应式变量，所以会触发vm.render() 视图更新。
+        
 ### 4.如何去监听url的变化
-    hashchange以及popState
+    // 监听hashchange以及popState
+    hash.js：
+        window.addEventListener(
+            supportsPushState ? 'popstate' : 'hashchange',
+            () => {
+                const current = this.current
+                if (!ensureSlash()) {
+                return
+                }
+                this.transitionTo(getHash(), route => {
+                if (supportsScroll) {
+                    handleScroll(this.router, route, current, true)
+                }
+                if (!supportsPushState) {
+                    replaceHash(route.fullPath)
+                }
+                })
+            }
+        ) 
+    hashchange事件和popstate事件什么时候会触发呢？
+    hashchange是一个浏览器事件，浏览器前进后退，或者是手动更改url，通过这些事件去改变hash时，hashchange才会触发
+    
+
 
 ## Hash模式和History模式区别？
     替换url的方式不一样，history使用pushState和replaceState
