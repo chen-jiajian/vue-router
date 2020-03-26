@@ -58,7 +58,7 @@ export class HashHistory extends History {
       route => { // route对象
         console.log('route', route)
         pushHash(route.fullPath) // 对浏览器hash赋值
-        handleScroll(this.router, route, fromRoute, false)
+        handleScroll(this.router, route, fromRoute, false) // 滚动 还没看
         onComplete && onComplete(route)
       },
       onAbort
