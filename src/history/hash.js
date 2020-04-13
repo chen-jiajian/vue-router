@@ -134,6 +134,7 @@ export function getHash (): string {
       href = decodeURI(href.slice(0, hashIndex)) + href.slice(hashIndex)
     } else href = decodeURI(href)
   } else {
+    // 对中文等转义
     href = decodeURI(href.slice(0, searchIndex)) + href.slice(searchIndex)
   }
 

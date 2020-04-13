@@ -1,48 +1,218 @@
 # vue-router原理分析
 
+#### 路由的使用大家都不陌生，但是在使用的使用经常会有这样的问题，路由通过什么来实现跳转（改变显示的组件），而且页面没有刷新呢？
 
-## 路由改变时到组件更新的过程是怎样的？
-    这个问题理解了，我们就明白了route的原理了，把这个问题再拆分成两个问题。
-#### （1）url更新时，怎么不触发页面重新加载, 去更新组件？
-#### （2）我们手动调用切换组件时，这个过程经历了什么？
+#### 我们来看看路由的基本用法：
+### app.vue
+```
+<div id="app">
+  <h1>Hello App!</h1>
+  <p>
+    <!-- 使用 router-link 组件来导航. -->
+    <!-- 通过传入 `to` 属性指定链接. -->
+    <!-- <router-link> 默认会被渲染成一个 `<a>` 标签 -->
+    <router-link to="/foo">Go to Foo</router-link>
+    <router-link to="/bar">Go to Bar</router-link>
+  </p>
+  <!-- 路由出口 -->
+  <!-- 路由匹配到的组件将渲染在这里 -->
+  <router-view></router-view>
+</div>
+```
+### index.js
+```
+import Vue from 'vue'
+import VueRouter from 'vue-router'
+import App from './App'
 
-### 1.我们先来看，我们要使用route，必须先安装这个插件，分析一下route作为插件安装到项目中的一个过程
-#### vue.use
-    我们知道在vue中使用插件一般是用vue.use(插件)，vue.use其实就是调用了插件的一个install方法，也就是route插件里有个install方法，去执行一下安装的操作，如果说没有install方法，那么vue会将这个插件当作一个函数来执行
+Vue.use(VueRouter)
 
-#### install.js
-    1.导出一个install方法
-    2.Vue.mixin 
-    (1)混入一个beforeCreate() 对根组件初始化：哪个是组件，Vue的实例就是根组件，记得我们在Vue实例化的时
-    候，给Vue添加了router这个属性，所以我们能轻松的找到根组件。
-    (2)init方法初始化根组件，在index.js中，对实例后的history对象，调用transitionTo()方法，后面讲transitionTo方法非常重要，更新路由的完整过程，push和初始化和url改变触发的事件都调用了它， 
-        
-    还调用了history.setupListeners
-        监听路由变化事件(popstate, hashchange),然后调用transitionTo方法
-    (3)而且定义了_route这个响应式变量，只要改变_route，视图就能更新
+// 1. 定义（路由）组件。
+const Foo = { template: '<div>foo</div>' }
+const Bar = { template: '<div>bar</div>' }
 
-    3.定义两个属性：_router,_route
-    Object.defineProperty(Vue.prototype, '$router', {
-        get() {return this._routerRoot._router}
+// 2. 定义路由
+const routes = [
+  { path: '/foo', component: Foo },
+  { path: '/bar', component: Bar }
+]
+
+// 3. 创建 router 实例，然后传 `routes` 配置
+const router = new VueRouter({
+  routes // （缩写）相当于 routes: routes
+})
+
+// 4. 创建和挂载根实例。
+const app = new Vue({
+  el: '#app',
+  render(h) {
+    return h(App)
+  },
+  router
+})
+```
+#### 要使用route，必须先安装这个插件
+### Vue.use(VueRouter) 
+```
+我们先从Vue.use(VueRouter)说起，use接收一个plugin参数，调用plugin里的install方法，如果没有定义install方法，会将plugin当作方法直接执行，我们看到install方法在install.js里面，做了一个installed赋值，防止重复安装。然后用了一个全局函数 _Vue来接收Vue，省去了import Vue
+```
+### install.js
+#### 1.导出一个install方法
+#### 2.Vue.mixin
+
+    install里面很重要的就是，混入了一个生命周期-beforeCreate()，
+```
+beforeCreate() {
+    if (isDef(this.$options.router)) { // 根组件
+        this._routerRoot = this // 跟组件
+        this._router = this.$options.router // 整个router对象
+        this._router.init(this) // 初始化根组件路由
+        // 定义响应式变量，触发Vue的render更新
+        Vue.util.defineReactive(this, '_route', this._router.history.current) 
+    } else { // 非根组件 建立关联
+        this._routerRoot = (this.$parent && this.$parent._routerRoot) || this
+    }
+    // 注册实例
+    registerInstance()
+}
+```
+#### 3.init
+```
+    this.apps.push(app)// 添加根组件进数组
+    if (this.app) {
+      return
+    }
+    this.app = app
+    const history = this.history
+    // 调用transitionTo过渡方法, 初始化渲染？
+    if (history instanceof HTML5History) {
+      // 后面讲transitionTo方法非常重要，更新路由的完整过程，push和初始化和url改变触发的事件都调用了它， 
+      history.transitionTo(history.getCurrentLocation())
+    } else if (history instanceof HashHistory) {
+      const setupHashListener = () => {
+        history.setupListeners()
+      }
+      history.transitionTo(
+        history.getCurrentLocation(),
+        setupHashListener,
+        setupHashListener
+      )
+    }
+    // 设置监听事件
+    history.listen(route => {
+      this.apps.forEach((app) => {
+        app._route = route
+      })
     })
-    返回的this._routerRoot._router是什么呢？
+```
 
-    4.全局注册了RouterView和RouterLink两个组件
+#### 4.挂载变量
+```
+// 挂载变量到原型上
+Object.defineProperty(Vue.prototype, '$router', {
+get () { return this._routerRoot._router }
+})
+Object.defineProperty(Vue.prototype, '$route', {
+get () { return this._routerRoot._route }
+})
+
+```
+
+#### 5.注册组件
+```
+// 注册全局组件
+Vue.component('RouterView', View)
+Vue.component('RouterLink', Link)
+```
+
 
 #### new VueRouter
-    传入routes对象
-    new VueRouter({
-        routes: []
-    })
-    看下index.js 里的构造函数constructor
-    判断你的模式，初始化history对象
-    定义了各种方法，push，replace，go，
-### 2.实例化以及初始化
-    hash，history模式初始化以及建立关联
-    在new VueRouter里面初始化history对象
-    new History(this, base) // base就是地址最后一个
-    定义了hash模式的push，replace，go等方法
-### 3.根据push如何去匹配组件
+```
+constructor (options: RouterOptions = {}) {
+  this.app = null // 根组件
+  this.apps = [] // 根组件数组
+  this.options = options // 传入的路由配置
+  this.beforeHooks = [] // 钩子函数，后面说
+  this.resolveHooks = []
+  this.afterHooks = []
+  this.matcher = createMatcher(options.routes || [], this) // 匹配路由器，后面说
+
+  let mode = options.mode || 'hash' // 默认模式
+  // 不支持history模式时，是否回退到hash模式
+  this.fallback = mode === 'history' && !supportsPushState && options.fallback !== false
+  if (this.fallback) {
+    mode = 'hash'
+  }
+  if (!inBrowser) {
+    mode = 'abstract'
+  }
+  this.mode = mode
+  // 根据模式，初始化history对象
+  switch (mode) {
+    case 'history':
+      this.history = new HTML5History(this, options.base)
+      break
+    case 'hash':
+      this.history = new HashHistory(this, options.base, this.fallback)
+      break
+    case 'abstract':
+      this.history = new AbstractHistory(this, options.base)
+      break
+    default:
+      if (process.env.NODE_ENV !== 'production') {
+        assert(false, `invalid mode: ${mode}`)
+      }
+  }
+}
+```
+#### hash.js
+    上面看到new HTML5History(this, options.base),我们看看实例化的时候都做了什么
+
+  ```
+  export class HashHistory extends History {
+    constructor (router: Router, base: ?string, fallback: boolean) {
+      super(router, base)
+      // check history fallback deeplinking
+      if (fallback && checkFallback(this.base)) {
+        return
+      }
+      ensureSlash() // 格式化url，加/
+    }
+    setupListeners () { // 设置监听
+      const router = this.router
+      const expectScroll = router.options.scrollBehavior
+      const supportsScroll = supportsPushState && expectScroll
+
+      if (supportsScroll) {
+        setupScroll()
+      }
+      // 监听路由变化事件
+      window.addEventListener(
+        supportsPushState ? 'popstate' : 'hashchange',
+        () => {
+          const current = this.current
+          if (!ensureSlash()) {
+            return
+          }
+          this.transitionTo(getHash(), route => {
+            if (supportsScroll) { // 是否支持滚动和pushstate
+              handleScroll(this.router, route, current, true)
+            }
+            if (!supportsPushState) {
+              replaceHash(route.fullPath) // 替换url的hash
+            }
+          })
+        }
+      )
+    }
+  }
+  ```
+看到这里我们也知道，history里面设置监听了hashchange和popstate去监听url的变化，然后去调用transitionTo去渲染新的路由
+
+#### transitionTo
+
+改end
+### push如何去匹配组件
     以hash模式为例
     我们整理一下他的过程
     hashHistory.push() => history.transitionTo() => History.updateRoute() => app._route = route => vm.render()
@@ -84,7 +254,7 @@
             () => {
                 const current = this.current
                 if (!ensureSlash()) {
-                return
+                    return
                 }
                 this.transitionTo(getHash(), route => {
                 if (supportsScroll) {
@@ -98,6 +268,8 @@
         ) 
     hashchange事件和popstate事件什么时候会触发呢？
     hashchange是一个浏览器事件，浏览器前进后退，或者是手动更改url，通过这些事件去改变hash时，hashchange才会触发
+    popstate也是一个浏览器事件，浏览器前进后退，会触发（手动更改url并不会触发，而且引起页面重新加载，即不是路由跳转的效果， 对window.location.href进行赋值相当于手动更改url）
+
     
 
 
