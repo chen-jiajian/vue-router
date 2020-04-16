@@ -211,11 +211,77 @@ constructor (options: RouterOptions = {}) {
 
 #### transitionTo
 
-改end
+```
+transitionTo (
+    location: RawLocation,
+    onComplete?: Function,
+    onAbort?: Function
+  ) {
+    // this.current为当前路由
+    const route = this.router.match(location, this.current) // 得到即将跳转的路由对象 [name, meta, path, hash,query, params, fullPath, matcched]
+    this.confirmTransition( // 确认路由
+      route,
+      () => {
+        this.updateRoute(route) // 更新路由
+        onComplete && onComplete(route) // 回调函数
+        this.ensureURL() // 替换url
+
+        // fire ready cbs once
+        if (!this.ready) {
+          this.ready = true
+          this.readyCbs.forEach(cb => {
+            cb(route) // 准备后的回调事件
+          })
+        }
+      },
+      err => {
+        if (onAbort) {
+          onAbort(err)
+        }
+        if (err && !this.ready) {
+          this.ready = true
+          this.readyErrorCbs.forEach(cb => {
+            cb(err)
+          })
+        }
+      }
+    )
+  }
+```
+
+这里调用了确认路由方法，然后执行了updateRoute去更新路由，ensureURL方法更新url
+我们来看看
+#### confirmTransition // 确认路由（判断是否同个路由等操作）
+```
+
+```
+#### updateRoute
+
+```
+updateRoute (route: Route) {
+  const prev = this.current
+  this.current = route // 切换当前路由
+  this.cb && this.cb(route) // 这个回调是listen时设置的 app._route = route
+  this.router.afterHooks.forEach(hook => {
+    hook && hook(route, prev)
+  })
+}
+```
+#### ensureURl // 替换url
+```
+ensureURL (push?: boolean) {
+  const current = this.current.fullPath // 当前链接hash
+  if (getHash() !== current) {
+    push ? pushHash(current) : replaceHash(current)
+  }
+}
+```
+
+### 那我们平时用this.$router.push({path: '/index', query: {a: 1}}),路由的内部调用了哪些方法，过程是怎样的？
 ### push如何去匹配组件
     以hash模式为例
     我们整理一下他的过程
-    hashHistory.push() => history.transitionTo() => History.updateRoute() => app._route = route => vm.render()
+    router.push() => hashHistory.push() => history.transitionTo() => History.updateRoute() => app._route = route => vm.render()
 
     我们先是用this.$router.push('/index')
     this.$router对象其实是new VueRouter出来的对象， 在install.js中定义了这个变量

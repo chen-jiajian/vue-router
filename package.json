@@ -15,7 +15,7 @@
   },
   "typings": "types/index.d.ts",
   "files": [
-    "src",
+    "src2",
     "dist/*.js",
     "types/*.d.ts"
   ],

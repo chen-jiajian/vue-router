@@ -49,7 +49,7 @@ module.exports = {
   resolve: {
     alias: {
       vue: 'vue/dist/vue.esm.js',
-      'vue-router': path.join(__dirname, '..', 'src')
+      'vue-router': path.join(__dirname, '..', 'src2')
     }
   },
 
