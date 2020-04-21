@@ -51,7 +51,7 @@ module.exports = [
 function genConfig (opts) {
   const config = {
     input: {
-      input: resolve('src2/index.js'),
+      input: resolve('src/index.js'),
       plugins: [
         flow(),
         node(),

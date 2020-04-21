@@ -20,12 +20,12 @@ export function install(Vue) {
     beforeCreate() {
       if (this.$options.router) { // 根组件
         console.log('根组件：', this);
-        this._routerParent = this
+        this._routerRoot = this
         this._router = this.$options.router
-        this.$options.router.init()
+        this._router.init(this)
         Vue.util.defineReactive(this, '_route', this._router.history.current) // 赋值当前路由对象
       } else { // 非根组件 建立关联
-        this._routerParent = this.$parent
+        this._routerRoot = this.$parent || this
       }
       // 注册实例
       // registerInstance(this, this)
@@ -40,14 +40,17 @@ export function install(Vue) {
   // Vue.prototype.$route = this._routerParent._route
   // 挂载变量到原型上
   Object.defineProperty(Vue.prototype, '$router', {
-    get() { return this._routerParent._router }
+    get() { return this._routerRoot._router }
   })
   // 挂载变量到原型上
   Object.defineProperty(Vue.prototype, '$route', {
-    get() { return this._routerParent._route }
+    get() { return this._routerRoot._route }
   })
 
   Vue.component('RouterView', View)
   Vue.component('RouterLink', Link)
+  const strats = Vue.config.optionMergeStrategies
+  // use the same hook merging strategy for route hooks
+  strats.beforeRouteEnter = strats.beforeRouteLeave = strats.beforeRouteUpdate = strats.created
 
 }

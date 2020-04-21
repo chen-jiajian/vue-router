@@ -143,7 +143,7 @@ export function createMatcher (
     })
     if (aliasedMatch) {
       const matched = aliasedMatch.matched
-      const aliasedRecord = matched[matchedmatched.length - 1]
+      const aliasedRecord = matched[matched.length - 1]
       location.params = aliasedMatch.params
       return _createRoute(aliasedRecord, location)
     }

@@ -8,7 +8,7 @@ export class History {
     }
     cb () {}
     transitionTo (location) {
-        console.log('this.router', this)
+        console.log('location', location)
         const route = this.router.match(location, this.current) // 得到即将跳转的路由对象 [name, meta, path, hash,query, params, fullPath, matcched]
         this.current = route // 切换当前路由
         this.cb(route)

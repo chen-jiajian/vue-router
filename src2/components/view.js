@@ -11,6 +11,7 @@ export default {
     }
   },
   render (_, { props, children, parent, data }) {
+    console.log('我是render')
     // used by devtools to display a router-view badge
     data.routerView = true
 
@@ -20,12 +21,15 @@ export default {
     const name = props.name
     const route = parent.$route
     const cache = parent._routerViewCache || (parent._routerViewCache = {})
+    console.log('View-route:', route)
 
     // determine current view depth, also check to see if the tree
     // has been toggled inactive but kept-alive.
     let depth = 0
     let inactive = false
+    console.log(parent._routerRoot, parent)
     while (parent && parent._routerRoot !== parent) {
+      conosle.log('while')
       const vnodeData = parent.$vnode && parent.$vnode.data
       if (vnodeData) {
         if (vnodeData.routerView) {

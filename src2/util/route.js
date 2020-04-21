@@ -17,7 +17,7 @@ export function createRoute (
   try {
     query = clone(query)
   } catch (e) {}
-
+  console.log('record:::', formatMatch(record) : [])
   const route: Route = {
     name: location.name || (record && record.name),
     meta: (record && record.meta) || {},
