@@ -5,6 +5,7 @@ import { createMatcher } from './create-matcher'
 export default class VueRouter {
 
 	constructor(options) {
+		this.options = options
 		this.history = new History(this)
 		this.matcher = createMatcher(options.routes || [], this)
 	}
@@ -13,6 +14,7 @@ export default class VueRouter {
 		// 有问题
 		this.history.transitionTo(this.history.getHash(), this.history.setupListeners)
 		this.history.listen(route => { // route = 要跳转的路由对象
+			console.log('最后更新路由：', route)
 			this._routerRoot._route = route
 		})
 	}
@@ -45,9 +47,9 @@ export default class VueRouter {
 		}
 		return route // this.matcher.match(location, current)
 	}
-	resolve(to, current) {
+	resolve(to, current, append) {
 		current = current || this.history.current
-		const location = normalizeLocation(
+		const location = this.normalizeLocation(
 			to,
 			current,
 			append,
@@ -66,6 +68,23 @@ export default class VueRouter {
 			resolved: route
 		}
 	}
+	normalizeLocation (to, current, append) {
+		const path = to
+		const query = {}
+		let hash = ''
+		if (to.indexOf('#') > -1) {
+			hash = '#' + to.split('#')[1]
+		}
+		return {
+			path,
+			query,
+			hash
+		  }
+	}
 
 }
+function createHref (base: string, fullPath: string, mode) {
+	var path = mode === 'hash' ? '#' + fullPath : fullPath
+	return base ? cleanPath(base + '/' + path) : path
+  }
 VueRouter.install = install

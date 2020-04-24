@@ -42,6 +42,7 @@ export default {
     )
 
     const classes = {}
+    console.log('linkActiveClass', router.options.linkActiveClass)
     const globalActiveClass = router.options.linkActiveClass
     const globalExactActiveClass = router.options.linkExactActiveClass
     // Support global empty active class

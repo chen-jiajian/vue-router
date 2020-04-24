@@ -128,7 +128,8 @@ export default class VueRouter {
     // 监听route的变化， 更新根组件上的_route， listen函数赋值cb给this.cb， updateRoute的时候会去调用cb
     history.listen(route => {
       this.apps.forEach((app) => {
-        app._route = route
+			console.log('最后更新路由：', route)
+      app._route = route
         console.log('this.apps.forEach:', app)
       })
     })
