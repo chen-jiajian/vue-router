@@ -150,6 +150,7 @@ function getUrl (path) {
 
 function pushHash (path) { // 改变url上的hash
   if (supportsPushState) {
+    console.log('---------path-------', getUrl(path))
     pushState(getUrl(path))
   } else {
     window.location.hash = path

@@ -6,5 +6,9 @@
   "extends": [
     "plugin:vue-libs/recommended",
     "plugin:flowtype/recommended"
-  ]
+  ],
+  "rules": {
+    // 配置函数后面空格，忽略
+    "space-before-function-paren": "off",
+  }
 }

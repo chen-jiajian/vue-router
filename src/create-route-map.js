@@ -14,18 +14,22 @@ export function createRouteMap (
   pathMap: Dictionary<RouteRecord>,
   nameMap: Dictionary<RouteRecord>
 } {
-  // the path list is used to control path matching priority
+  // 路径列表用于控制路径匹配优先级
   const pathList: Array<string> = oldPathList || []
   // $flow-disable-line
   const pathMap: Dictionary<RouteRecord> = oldPathMap || Object.create(null)
   // $flow-disable-line
   const nameMap: Dictionary<RouteRecord> = oldNameMap || Object.create(null)
 
+  console.log('pathList:', pathList)
+  console.log('pathMap:', pathMap)
+  console.log('nameMap:', nameMap)
+
   routes.forEach(route => {
     addRouteRecord(pathList, pathMap, nameMap, route)
   })
 
-  // ensure wildcard routes are always at the end
+  // 确保通配符路由始终在末尾
   for (let i = 0, l = pathList.length; i < l; i++) {
     if (pathList[i] === '*') {
       pathList.push(pathList.splice(i, 1)[0])
@@ -35,9 +39,9 @@ export function createRouteMap (
   }
 
   if (process.env.NODE_ENV === 'development') {
-    // warn if routes do not include leading slashes
+    // 警告路线是否不包含斜杠
     const found = pathList
-    // check for missing leading slash
+    // 检查缺少的斜杠
       .filter(path => path && path.charAt(0) !== '*' && path.charAt(0) !== '/')
 
     if (found.length > 0) {
@@ -45,12 +49,13 @@ export function createRouteMap (
       warn(false, `Non-nested routes must include a leading slash character. Fix the following routes: \n${pathNames}`)
     }
   }
-
-  return {
+  const re = {
     pathList,
     pathMap,
     nameMap
   }
+  console.log('返回时对象：', re)
+  return re
 }
 
 function addRouteRecord (
