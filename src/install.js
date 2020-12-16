@@ -22,14 +22,14 @@ export function install (Vue) {
   // 混入生命周期
   Vue.mixin({
     beforeCreate () {
-      console.log('router-beforeCreate')
+      // console.log('router-beforeCreate')
       // 判断是否是根组件
       if (isDef(this.$options.router)) {
-        console.log('根组件', this)
+        // console.log('根组件', this)
         this._routerRoot = this // 跟组件
         this._router = this.$options.router // 整个router对象
         this._router.init(this) // 初始化根组件路由
-        console.log('this._router', this._router)
+        // console.log('this._router', this._router)
         // defineReactive(obj, key, val)
         // defineReactive() 就是用于定义响应式数据的工具函数，定义this._route为响应式变量，值为this._router.history.current， _route改变能触发render更新
         Vue.util.defineReactive(this, '_route', this._router.history.current)

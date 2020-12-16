@@ -1,5 +1,6 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
+import { resolveQuery } from '../../src/util/query'
 
 // 1. Use plugin.
 // This installs <router-view> and <router-link>,
@@ -18,7 +19,14 @@ const router = new VueRouter({
   base: __dirname,
   routes: [
     { path: '/', component: Home }, // all paths are defined without the hash.
-    { path: '/foo', component: Foo },
+    { path: '/foo', component: Foo, beforeEnter: () => {
+      return new Promise((resolve, reject) => {
+        setTimeout(function () {
+          resolve()
+          console.log('beforeEnter')
+        }, 1000)
+      })
+    } },
     { path: '/bar', component: Bar },
     { path: '/é', component: Unicode },
     { path: '/é/:unicode', component: Unicode }
@@ -36,6 +44,7 @@ new Vue({
       <ul>
         <li><router-link to="/">/</router-link></li>
         <li><router-link to="/foo">/foo</router-link></li>
+        <a href="/hash-mode#/foo">foo2</a>
         <li><router-link to="/bar">/bar</router-link></li>
         <router-link tag="li" to="/bar">/bar</router-link>
         <li><router-link to="/é">/é</router-link></li>
@@ -46,5 +55,10 @@ new Vue({
       <pre id="hash">{{ $route.hash }}</pre>
       <router-view class="view"></router-view>
     </div>
-  `
+  `,
+  methods: {
+    toFoo () {
+      this.$router.push('/foo')
+    }
+  }
 }).$mount('#app')

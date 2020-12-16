@@ -33,6 +33,7 @@ export default class VueRouter {
   afterHooks: Array<?AfterNavigationHook>;
 
   constructor (options: RouterOptions = {}) {
+    // this._routerRoot = null
     this.app = null
     this.apps = []
     this.options = options
@@ -52,7 +53,7 @@ export default class VueRouter {
       mode = 'abstract'
     }
     this.mode = mode
-    console.log('options', options)
+    // console.log('options', options)
     switch (mode) {
       case 'history':
         this.history = new HTML5History(this, options.base)
@@ -88,49 +89,48 @@ export default class VueRouter {
       `not installed. Make sure to call \`Vue.use(VueRouter)\` ` +
       `before creating root instance.`
     )
-    this.apps.push(app)// 添加根组件进数组
-    console.log('app:', app)
-    console.log('apps:', this.apps)
-    // set up app destroyed handler
-    // https://github.com/vuejs/vue-router/issues/2639
-    app.$once('hook:destroyed', () => { // 销毁，从apps里干掉
-      // clean out app from this.apps array once destroyed
-      const index = this.apps.indexOf(app)
-      if (index > -1) this.apps.splice(index, 1)
-      // ensure we still have a main app or null if no apps
-      // we do not release the router so it can be reused
-      if (this.app === app) this.app = this.apps[0] || null
-    })
+    // this.apps.push(app)// 添加根组件进数组
+    // // set up app destroyed handler
+    // // https://github.com/vuejs/vue-router/issues/2639
+    // app.$once('hook:destroyed', () => { // 销毁，从apps里干掉
+    //   // clean out app from this.apps array once destroyed
+    //   const index = this.apps.indexOf(app)
+    //   if (index > -1) this.apps.splice(index, 1)
+    //   // ensure we still have a main app or null if no apps
+    //   // we do not release the router so it can be reused
+    //   if (this.app === app) this.app = this.apps[0] || null
+    // })
 
-    // main app previously initialized
-    // return as we don't need to set up new history listener
-    if (this.app) {
-      return
-    }
+    // // main app previously initialized
+    // // return as we don't need to set up new history listener
+    // if (this.app) {
+    //   return
+    // }
 
-    this.app = app
-
+    // this.app = app
+    this._routerRoot = app
     const history = this.history
-    console.log('history:', history)
+    // console.log('history:', history)
     // 调用transitionTo过渡方法
-    if (history instanceof HTML5History) {
-      history.transitionTo(history.getCurrentLocation())
-    } else if (history instanceof HashHistory) {
-      const setupHashListener = () => {
-        history.setupListeners()
-      }
-      history.transitionTo(
-        history.getCurrentLocation(),
-        setupHashListener,
-        setupHashListener
-      )
-    }
+    // if (history instanceof HTML5History) {
+    //   history.transitionTo(history.getCurrentLocation())
+    // } else if (history instanceof HashHistory) {
+    //   const setupHashListener = () => {
+    //     history.setupListeners()
+    //   }
+    //   history.transitionTo(
+    //     history.getCurrentLocation(),
+    //     setupHashListener,
+    //     setupHashListener
+    //   )
+    // }
     // 监听route的变化， 更新根组件上的_route， listen函数赋值cb给this.cb， updateRoute的时候会去调用cb
     history.listen(route => {
+      // console.log('this.apps', this.apps)
+      this._routerRoot._route = route
       this.apps.forEach((app) => {
-			console.log('最后更新路由：', route)
-      app._route = route
-        console.log('this.apps.forEach:', app)
+      // console.log('最后更新路由：', route)
+      // app._route = route
       })
     })
   }

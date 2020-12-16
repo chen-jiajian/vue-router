@@ -30,9 +30,11 @@ export function createMatcher (
   ): Route {
     const location = normalizeLocation(raw, currentRoute, false, router)
     const { name } = location
+    console.log('location', location)
 
     if (name) {
       const record = nameMap[name]
+      console.log('create-matcher.js-record:name:', record)
       if (process.env.NODE_ENV !== 'production') {
         warn(record, `Route with name '${name}' does not exist`)
       }
@@ -60,6 +62,7 @@ export function createMatcher (
       for (let i = 0; i < pathList.length; i++) {
         const path = pathList[i]
         const record = pathMap[path]
+        console.log('pathMap[path].path:', path)
         if (matchRoute(record.regex, location.path, location.params)) {
           return _createRoute(record, location, redirectedFrom)
         }

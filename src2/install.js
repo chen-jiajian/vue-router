@@ -6,6 +6,7 @@ export function install(Vue) {
     return
   }
   install.installed = true
+  const isDef = v => v !== undefined // 是否定义
   const registerInstance = (vm, callVal) => {
     if (vm.$options._parentVnode) {
       vm.$options._parentVnode(vm, callVal)
@@ -19,13 +20,13 @@ export function install(Vue) {
   Vue.mixin({
     beforeCreate() {
       if (this.$options.router) { // 根组件
-        console.log('根组件：', this);
+        console.log('根组件：', this)
         this._routerRoot = this
         this._router = this.$options.router
         this._router.init(this)
         Vue.util.defineReactive(this, '_route', this._router.history.current) // 赋值当前路由对象
       } else { // 非根组件 建立关联
-        this._routerRoot = this.$parent || this
+        this._routerRoot = (this.$parent && this.$parent._routerRoot) || this
       }
       // 注册实例
       // registerInstance(this, this)
@@ -52,5 +53,4 @@ export function install(Vue) {
   const strats = Vue.config.optionMergeStrategies
   // use the same hook merging strategy for route hooks
   strats.beforeRouteEnter = strats.beforeRouteLeave = strats.beforeRouteUpdate = strats.created
-
 }

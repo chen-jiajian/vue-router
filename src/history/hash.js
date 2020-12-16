@@ -49,14 +49,14 @@ export class HashHistory extends History {
   }
 
   push (location: RawLocation, onComplete?: Function, onAbort?: Function) {
-    console.log('location: ', location)
-    console.log('onComplete: ', onComplete)
-    console.log('onAbort: ', onAbort)
+    // console.log('location: ', location)
+    // console.log('onComplete: ', onComplete)
+    // console.log('onAbort: ', onAbort)
     const { current: fromRoute } = this
     this.transitionTo(
       location, // 传入的route对象 {path: '', query: {}}
       route => { // route对象
-        console.log('route', route)
+        // console.log('route', route)
         pushHash(route.fullPath) // 对浏览器hash赋值
         handleScroll(this.router, route, fromRoute, false) // 滚动 还没看
         onComplete && onComplete(route)
@@ -84,7 +84,7 @@ export class HashHistory extends History {
 
   ensureURL (push?: boolean) { // 改变url
     const current = this.current.fullPath // 当前链接hash
-    console.log('当前链接:', current)
+    // console.log('当前链接:', current)
     if (getHash() !== current) {
       push ? pushHash(current) : replaceHash(current)
     }
@@ -97,9 +97,9 @@ export class HashHistory extends History {
 
 function checkFallback (base) {
   const location = getLocation(base)
-  console.log('checkFallback.location', location)
+  // console.log('checkFallback.location', location)
   if (!/^\/#/.test(location)) {
-    console.log('cleanPath', cleanPath(base + '/#' + location))
+    // console.log('cleanPath', cleanPath(base + '/#' + location))
     window.location.replace(cleanPath(base + '/#' + location))
     return true
   }
@@ -107,7 +107,7 @@ function checkFallback (base) {
 // 更新url
 function ensureSlash (): boolean {
   const path = getHash()
-  console.log('ensureSlash.path', path)
+  // console.log('ensureSlash.path', path)
   if (path.charAt(0) === '/') {
     return true
   }
@@ -150,7 +150,7 @@ function getUrl (path) {
 
 function pushHash (path) { // 改变url上的hash
   if (supportsPushState) {
-    console.log('---------path-------', getUrl(path))
+    // console.log('---------path-------', getUrl(path))
     pushState(getUrl(path))
   } else {
     window.location.hash = path

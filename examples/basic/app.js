@@ -37,6 +37,7 @@ new Vue({
         <li><router-link to="/">/</router-link></li>
         <li><router-link to="/foo">/foo</router-link></li>
         <li><router-link to="/bar">/bar</router-link></li>
+        <li @click="replace">/replace</li>
         <router-link tag="li" to="/bar" :event="['mousedown', 'touchstart']">
           <a>/bar</a>
         </router-link>
@@ -65,6 +66,10 @@ new Vue({
       } else {
         this.$router.push('/', increment)
       }
+    },
+    replace () {
+      this.$router.replace('/bar')
     }
+
   }
 }).$mount('#app')

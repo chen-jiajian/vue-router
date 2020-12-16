@@ -20,11 +20,12 @@ export default {
     const name = props.name
     const route = parent.$route
     const cache = parent._routerViewCache || (parent._routerViewCache = {})
-    console.log('View-route:', route)
+    // console.log('View-route:', route)
     // determine current view depth, also check to see if the tree
     // has been toggled inactive but kept-alive.
     let depth = 0
     let inactive = false
+    console.log('$vnode:', parent.$vnode)
     while (parent && parent._routerRoot !== parent) {
       const vnodeData = parent.$vnode && parent.$vnode.data
       if (vnodeData) {
@@ -37,7 +38,7 @@ export default {
       }
       parent = parent.$parent
     }
-    console.log('View-depath:', depth)
+    // console.log('View-depath:', depth)
     data.routerViewDepth = depth
     // render previous view if the tree is inactive and kept-alive
     if (inactive) {

@@ -29,9 +29,9 @@ export class History {
   }
   cb() {}
   transitionTo(location, onComplete) {
-    console.log('location', location)
     const route = this.router.match(location, this.current) // 得到即将跳转的路由对象 [name, meta, path, hash,query, params, fullPath, matcched]
     this.current = route // 切换当前路由
+    // console.log('切换当前路由route', route)
     onComplete && onComplete(route) // 回调函数
     this.ensureURL() //
     this.cb(route)
@@ -42,7 +42,7 @@ export class History {
   ensureURL(push) {
     // 改变url
     const current = this.current.fullPath // 当前链接hash
-    console.log('当前链接:', this.current)
+    // console.log('当前链接:', this.current)
     // if (this.getHash() !== current) {
     //   push ? this.pushHash(current) : this.replaceHash(current)
     // }
@@ -54,11 +54,12 @@ export class History {
       })
     })
   }
-  push(location) {
+  push(location, onComplete) {
     this.transitionTo(location, route => {
-      console.log('locationlocationlocation:', location)
-      console.log('base:', this.base)
+      // console.log('locationlocationlocation:', location)
+      // console.log('base:', this.base)
       this.pushHash(this.base + route.path)
+      onComplete && onComplete(route)
     })
   }
   replace(location) {

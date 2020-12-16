@@ -30,11 +30,11 @@ export function pushState (url?: string, replace?: boolean) {
   try {
     if (replace) {
       // preserve existing history state as it could be overriden by the user
-      const stateCopy = extend({}, history.state)
-      stateCopy.key = getStateKey()
+      const stateCopy = extend({}, history.state) // 克隆了history.state
+      stateCopy.key = getStateKey() // 更新key
       history.replaceState(stateCopy, '', url)
     } else {
-      history.pushState({ key: setStateKey(genStateKey()) }, '', url)
+      history.pushState({ key: setStateKey(genStateKey()) }, '', url) // 按时间戳生成key
     }
   } catch (e) {
     window.location[replace ? 'replace' : 'assign'](url)

@@ -19,12 +19,14 @@ export class HTML5History extends History {
     }
 
     const initLocation = getLocation(this.base)
+    console.log('initLocation:', initLocation)
     window.addEventListener('popstate', e => {
+      // console.log('popstate')
       const current = this.current
 
       // Avoiding first `popstate` event dispatched in some browsers but first
       // history route not updated since async guard at the same time.
-      const location = getLocation(this.base)
+      const location = getLocation(this.base) // 去除掉base的部分
       if (this.current === START && location === initLocation) {
         return
       }
@@ -44,6 +46,7 @@ export class HTML5History extends History {
   push (location: RawLocation, onComplete?: Function, onAbort?: Function) {
     const { current: fromRoute } = this
     this.transitionTo(location, route => {
+      // console.log('cleanPath:', cleanPath(this.base + route.fullPath))
       pushState(cleanPath(this.base + route.fullPath))
       handleScroll(this.router, route, fromRoute, false)
       onComplete && onComplete(route)

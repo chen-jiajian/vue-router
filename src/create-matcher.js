@@ -28,7 +28,9 @@ export function createMatcher (
     currentRoute?: Route,
     redirectedFrom?: Location
   ): Route {
+    // console.log('createMatch-currentRoute: ', currentRoute)
     const location = normalizeLocation(raw, currentRoute, false, router)
+    // console.log('createMatch-location: ', location)
     const { name } = location
 
     if (name) {
@@ -54,6 +56,7 @@ export function createMatcher (
       }
 
       location.path = fillParams(record.path, location.params, `named route "${name}"`)
+      // console.log('createMatch-location: ', location)
       return _createRoute(record, location, redirectedFrom)
     } else if (location.path) {
       location.params = {}
@@ -113,7 +116,9 @@ export function createMatcher (
       }, undefined, location)
     } else if (path) {
       // 1. resolve relative redirect
+      // console.log('redirect-path:', path);
       const rawPath = resolveRecordPath(path, record)
+      // console.log('redirect-rawPath:', rawPath);
       // 2. resolve params
       const resolvedPath = fillParams(rawPath, params, `redirect route with path "${rawPath}"`)
       // 3. rematch with existing query and hash
@@ -155,6 +160,7 @@ export function createMatcher (
     location: Location,
     redirectedFrom?: Location
   ): Route {
+    console.log('routeRecord:', record)
     if (record && record.redirect) {
       return redirect(record, redirectedFrom || location)
     }
@@ -182,16 +188,17 @@ function matchRoute (
   } else if (!params) {
     return true
   }
-
+  // console.log('m:', m)
+  // console.log('regex.keys:', regex.keys)
   for (let i = 1, len = m.length; i < len; ++i) {
     const key = regex.keys[i - 1]
     const val = typeof m[i] === 'string' ? decodeURIComponent(m[i]) : m[i]
     if (key) {
       // Fix #1994: using * with props: true generates a param named 0
-      params[key.name || 'pathMatch'] = val
+      params[key.name || 'pathMatch'] = val // {id: 123}
     }
   }
-
+  // console.log('params:', params)
   return true
 }
 

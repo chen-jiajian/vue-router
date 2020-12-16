@@ -34,6 +34,7 @@ export class History {
   constructor (router: Router, base: ?string) {
     this.router = router
     this.base = normalizeBase(base)
+    console.log('base:', this.base)
     // start with a route object that stands for "nowhere"
     this.current = START
     this.pending = null
@@ -67,10 +68,10 @@ export class History {
     onComplete?: Function,
     onAbort?: Function
   ) {
-    console.log('location', location)
+    // console.log('location', location)
     const route = this.router.match(location, this.current) // 得到即将跳转的路由对象 [name, meta, path, hash,query, params, fullPath, matcched]
-    console.log('this.current:', this.current) // 当前路由
-    console.log('match-route:', route) // 跳转的路由对象
+    // console.log('this.current:', this.current) // 当前路由
+    // console.log('match-route:', route) // 跳转的路由对象
     this.confirmTransition( // 确认路由
       route,
       () => {
@@ -208,9 +209,9 @@ export class History {
     const prev = this.current
     this.current = route // 切换当前路由
     this.cb && this.cb(route) // 这个回调是listen时设置的
-    console.log('afterHooks', this.router.afterHooks)
+    // console.log('afterHooks', this.router.afterHooks)
     this.router.afterHooks.forEach(hook => {
-      console.log('hook', hook)
+      // console.log('hook', hook)
       hook && hook(route, prev)
     })
   }

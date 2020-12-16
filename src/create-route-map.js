@@ -21,9 +21,9 @@ export function createRouteMap (
   // $flow-disable-line
   const nameMap: Dictionary<RouteRecord> = oldNameMap || Object.create(null)
 
-  console.log('pathList:', pathList)
-  console.log('pathMap:', pathMap)
-  console.log('nameMap:', nameMap)
+  // console.log('pathList:', pathList)
+  // console.log('pathMap:', pathMap)
+  // console.log('nameMap:', nameMap)
 
   routes.forEach(route => {
     addRouteRecord(pathList, pathMap, nameMap, route)
@@ -54,7 +54,7 @@ export function createRouteMap (
     pathMap,
     nameMap
   }
-  console.log('返回时对象：', re)
+  // console.log('路由映射表：', re)
   return re
 }
 
@@ -184,8 +184,8 @@ function compileRouteRegex (
   path: string,
   pathToRegexpOptions: PathToRegexpOptions
 ): RouteRegExp {
-  const regex = Regexp(path, [], pathToRegexpOptions)
-  if (process.env.NODE_ENV !== 'production') {
+  const regex = Regexp(path, [], pathToRegexpOptions) // path: /foo
+  if (process.env.NODE_ENV !== 'production') { //
     const keys: any = Object.create(null)
     regex.keys.forEach(key => {
       warn(

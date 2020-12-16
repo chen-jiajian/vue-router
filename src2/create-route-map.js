@@ -1,6 +1,7 @@
 /* @flow */
 
 import Regexp from 'path-to-regexp'
+// console.log('Regexp', Regexp)
 import { cleanPath } from './util/path'
 import { assert, warn } from './util/warn'
 
@@ -20,7 +21,7 @@ export function createRouteMap (
   const pathMap: Dictionary<RouteRecord> = oldPathMap || Object.create(null)
   // $flow-disable-line
   const nameMap: Dictionary<RouteRecord> = oldNameMap || Object.create(null)
-
+  console.log('pathMap:', pathMap)
   routes.forEach(route => {
     addRouteRecord(pathList, pathMap, nameMap, route)
   })
@@ -79,24 +80,25 @@ function addRouteRecord (
   if (typeof route.caseSensitive === 'boolean') {
     pathToRegexpOptions.sensitive = route.caseSensitive
   }
-
+  console.log()
   const record: RouteRecord = {
     path: normalizedPath,
+    // 正则匹配 editing!!!
     regex: compileRouteRegex(normalizedPath, pathToRegexpOptions),
-    components: route.components || { default: route.component },
-    instances: {},
-    name,
-    parent,
-    matchAs,
-    redirect: route.redirect,
-    beforeEnter: route.beforeEnter,
-    meta: route.meta || {},
-    props:
-      route.props == null
-        ? {}
-        : route.components
-          ? route.props
-          : { default: route.props }
+    components: route.components || { default: route.component }
+    // instances: {},
+    // name,
+    // parent,
+    // matchAs,
+    // redirect: route.redirect,
+    // beforeEnter: route.beforeEnter,
+    // meta: route.meta || {},
+    // props:
+    //   route.props == null
+    //     ? {}
+    //     : route.components
+    //       ? route.props
+    //       : { default: route.props }
   }
 
   if (route.children) {

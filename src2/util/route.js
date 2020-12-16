@@ -28,6 +28,8 @@ export function createRoute (
     fullPath: getFullPath(location, stringifyQuery),
     matched: record ? formatMatch(record) : []
   }
+  console.log('record:', [record])
+  console.log('formatMatch(record)', formatMatch(record))
   if (redirectedFrom) {
     route.redirectedFrom = getFullPath(redirectedFrom, stringifyQuery)
   }
